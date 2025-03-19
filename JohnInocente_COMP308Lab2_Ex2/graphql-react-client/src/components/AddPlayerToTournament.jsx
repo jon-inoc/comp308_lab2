@@ -2,7 +2,16 @@ import React, { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import ADD_PLAYER_TO_TOURNAMENT from "../mutations/JoinTournaments"
+import ADD_PLAYER_TO_TOURNAMENT from "../mutations/JoinTournaments";
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
 
 const GET_PLAYERS = gql`
   query GetPlayers {
@@ -23,78 +32,105 @@ const GET_TOURNAMENTS = gql`
 `;
 
 const AddPlayerToTournament = () => {
-    const navigate = useNavigate();
-    const [selectedPlayer, setSelectedPlayer] = useState("");
-    const [selectedTournament, setSelectedTournament] = useState("");
+  const navigate = useNavigate();
+  const [selectedPlayer, setSelectedPlayer] = useState("");
+  const [selectedTournament, setSelectedTournament] = useState("");
 
-    const { loading: playersLoading, data: playersData } = useQuery(GET_PLAYERS);
-    const { loading: tournamentsLoading, data: tournamentsData } = useQuery(GET_TOURNAMENTS);
-    const [assignPlayer] = useMutation(ADD_PLAYER_TO_TOURNAMENT, {
-        onCompleted: () => toast.success("Player assigned successfully!"),
-        onError: (error) => toast.error(error.message),
-    });
+  const { loading: playersLoading, data: playersData } = useQuery(GET_PLAYERS);
+  const { loading: tournamentsLoading, data: tournamentsData } = useQuery(GET_TOURNAMENTS);
+  const [assignPlayer, { loading: assignLoading }] = useMutation(ADD_PLAYER_TO_TOURNAMENT, {
+    onCompleted: () => toast.success("Player assigned successfully!"),
+    onError: (error) => toast.error(error.message),
+  });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!selectedPlayer || !selectedTournament) {
-            toast.error("Please select both player and tournament.");
-            return;
-        }
-        assignPlayer({ variables: { tournamentId: selectedTournament, playerId: selectedPlayer } });
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedPlayer || !selectedTournament) {
+      toast.error("Please select both player and tournament.");
+      return;
+    }
+    assignPlayer({ variables: { tournamentId: selectedTournament, playerId: selectedPlayer } });
+  };
 
-    return (
-        <div className=" justify-content-center align-items-center">
-            <h2 className="fw-bold text-primary">Add Player to Tournament</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Select Player</label>
-                    <div className="input-group">
-                        <select
-                            className="form-select"
-                            value={selectedPlayer}
-                            onChange={(e) => setSelectedPlayer(e.target.value)}
-                            disabled={playersLoading}
-                        >
-                            <option value="">-- Choose Player --</option>
-                            {playersData?.players.map((player) => (
-                                <option key={player.id} value={player.id}>{player.username}</option>
-                            ))}
-                        </select>
-                        <span className="input-group-text bg-light">
-                            <i className="bi bi-caret-down-fill"></i>
-                        </span>
-                    </div>
-                </div>
+  return (
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+      sx={{ bgcolor: "background.default", padding: 3 }}
+    >
+      <Paper elevation={3} sx={{ padding: 4, maxWidth: 500, width: "100%" }}>
+        <Typography variant="h4" color="primary" align="center" gutterBottom>
+          Add Player to Tournament
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          {/* Select Player */}
+          <TextField
+            select
+            fullWidth
+            label="Select Player"
+            value={selectedPlayer}
+            onChange={(e) => setSelectedPlayer(e.target.value)}
+            variant="outlined"
+            margin="normal"
+            disabled={playersLoading}
+            helperText={playersLoading ? "Loading players..." : ""}
+          >
+            <MenuItem value="">-- Choose Player --</MenuItem>
+            {playersData?.players.map((player) => (
+              <MenuItem key={player.id} value={player.id}>
+                {player.username}
+              </MenuItem>
+            ))}
+          </TextField>
 
-                <div className="mb-3">
-                    <label className="form-label">Select Tournament</label>
-                    <div className="input-group">
-                        <select
-                            className="form-select"
-                            value={selectedTournament}
-                            onChange={(e) => setSelectedTournament(e.target.value)}
-                            disabled={tournamentsLoading}
-                        >
-                            <option value="">-- Choose Tournament --</option>
-                            {tournamentsData?.tournaments.map((tournament) => (
-                                <option key={tournament.id} value={tournament.id}>{tournament.name}</option>
-                            ))}
-                        </select>
-                        <span className="input-group-text bg-light">
-                            <i className="bi bi-caret-down-fill"></i>
-                        </span>
-                    </div>
-                </div>
+          {/* Select Tournament */}
+          <TextField
+            select
+            fullWidth
+            label="Select Tournament"
+            value={selectedTournament}
+            onChange={(e) => setSelectedTournament(e.target.value)}
+            variant="outlined"
+            margin="normal"
+            disabled={tournamentsLoading}
+            helperText={tournamentsLoading ? "Loading tournaments..." : ""}
+          >
+            <MenuItem value="">-- Choose Tournament --</MenuItem>
+            {tournamentsData?.tournaments.map((tournament) => (
+              <MenuItem key={tournament.id} value={tournament.id}>
+                {tournament.name}
+              </MenuItem>
+            ))}
+          </TextField>
 
-                <button type="submit" className="btn btn-success mt-3">Add Player</button>
-            </form>
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
+            disabled={assignLoading}
+          >
+            {assignLoading ? <CircularProgress size={24} /> : "Add Player"}
+          </Button>
+        </form>
 
-            <button className="btn btn-secondary mt-2" onClick={() => navigate('/main')}>
-                Back to Main
-            </button>
-        </div>
-    );
+        {/* Back Button */}
+        <Button
+          variant="outlined"
+          color="secondary"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={() => navigate("/main")}
+        >
+          Back to Main
+        </Button>
+      </Paper>
+    </Box>
+  );
 };
 
 export default AddPlayerToTournament;

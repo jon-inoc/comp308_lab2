@@ -29,17 +29,17 @@ import LOG_OUT from '../mutations/Logout';
 function View({ user }) {
     const navigate = useNavigate();
 
-    const { data: authData, loading: authLoading, error: authError } = useQuery(GET_PLAYERDATA, {
+    const { data: authData, loading: authLoading, error: authError, refetch: refetchAuthData } = useQuery(GET_PLAYERDATA, {
         variables: { userId: user?.id },
         fetchPolicy: "network-only",
         skip: !user || user.role === "Admin",
     });
 
-    const { data: playersData } = useQuery(GET_ALL_PLAYERS, {
+    const { data: playersData, refetch: refetchPlayersData } = useQuery(GET_ALL_PLAYERS, {
         skip: user?.role !== "Admin",
     });
 
-    const { data: tournamentsData } = useQuery(GET_ALL_TOURNAMENTS, {
+    const { data: tournamentsData, refetch: refetchTournamentsData } = useQuery(GET_ALL_TOURNAMENTS, {
         skip: user?.role !== "Admin",
     });
 
@@ -54,25 +54,21 @@ function View({ user }) {
     });
 
     useEffect(() => {
-        if (user?.role === "Admin") return;
-
-        if (!authLoading && authError) {
-            console.error("❌ GraphQL query error:", authError);
+        // Refetch data when the component is mounted or navigated to
+        if (user?.role === "Admin") {
+            refetchPlayersData();
+            refetchTournamentsData();
+        } else {
+            refetchAuthData();
         }
-
-        if (!authLoading && authData?.playerByUserId) {
-            console.log("✅ User is logged in");
-        } else if (!authLoading) {
-            console.log("🚫 User didn't log in");
-            //navigate('/');
-        }
-    }, [authData, authLoading, authError]);
+    }, [user, refetchAuthData, refetchPlayersData, refetchTournamentsData]);
 
     const handleLogout = () => {
         logout();
     };
 
     const menuItems = user?.role === "Admin" ? [
+        { text: "Create User", action: () => navigate('/createUser') },
         { text: "Create Tournament", action: () => navigate('/createTournament') },
         { text: "Add Player to Tournament", action: () => navigate('/addPlayer') },
         { text: "Players", action: () => navigate('/playerlist') },
