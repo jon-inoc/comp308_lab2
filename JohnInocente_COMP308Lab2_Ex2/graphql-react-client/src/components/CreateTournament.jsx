@@ -3,92 +3,147 @@ import { useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CREATE_TOURNAMENT from "../mutations/CreateTournament";
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  CircularProgress,
+  Paper,
+} from "@mui/material";
 
 const CreateTournament = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        name: "",
-        game: "",
-        date: "",
-        status: "Upcoming", // Default status
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: "",
+    game: "",
+    date: "",
+    status: "Upcoming", // Default status
+  });
+
+  const [createTournament, { loading, error }] = useMutation(CREATE_TOURNAMENT, {
+    onCompleted: () => {
+      toast.success("Tournament created successfully!");
+      navigate("/main"); // Navigate to main after showing toast
+    },
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await createTournament({
+      variables: {
+        name: formData.name,
+        game: formData.game,
+        date: formData.date,
+        status: formData.status,
+      },
     });
+  };
 
-    const [createTournament, { loading, error }] = useMutation(CREATE_TOURNAMENT, {
-        onCompleted: () => {
-            toast.success("Tournament created successfully!");
-            navigate("/main"); // Navigate to main after showing toast
-        },
-    });
+  return (
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      minHeight="100vh"
+      p={3}
+    >
+      <Paper elevation={3} sx={{ padding: 4, maxWidth: 500, width: "100%" }}>
+        <Typography variant="h4" color="primary" align="center" gutterBottom>
+          Create Tournament
+        </Typography>
+        {error && (
+          <Typography variant="body2" color="error" align="center" gutterBottom>
+            Error: {error.message}
+          </Typography>
+        )}
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
+          {/* Tournament Name */}
+          <TextField
+            label="Tournament Name"
+            name="name"
+            variant="outlined"
+            fullWidth
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+          {/* Game */}
+          <TextField
+            label="Game"
+            name="game"
+            variant="outlined"
+            fullWidth
+            value={formData.game}
+            onChange={handleChange}
+            required
+          />
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        console.log(formData.name, formData.game, formData.date, formData.status);
-        await createTournament({
-            variables: {
-                name: formData.name,
-                game: formData.game,
-                date: formData.date,
-                status: formData.status,
-            }
-        });
-    };
+          {/* Date */}
+          <TextField
+            label="Date"
+            name="date"
+            type="date"
+            variant="outlined"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={formData.date}
+            onChange={handleChange}
+            required
+          />
 
-    return (
-        <div className="justify-content-center align-items-center">
-            <h2 className="fw-bold text-primary mb-4">Create Tournament</h2>
-            {error && <p className="text-danger">Error: {error.message}</p>}
-            <form onSubmit={handleSubmit} className="mt-3">
-                <div className="mb-3">
-                    <label className="form-label">Tournament Name</label>
-                    <input type="text" name="name" className="form-control" onChange={handleChange} required />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Game</label>
-                    <input type="text" name="game" className="form-control" onChange={handleChange} required />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Date</label>
-                    <input type="date" name="date" className="form-control" onChange={handleChange} required />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Status</label>
-                    <select
-                        name="status"
-                        className={`form-control text-white bg-${getStatusColor(formData.status)}`}
-                        value={formData.status}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="Upcoming" className="text-primary">Upcoming</option>
-                        <option value="Ongoing" className="text-success">Ongoing</option>
-                        <option value="Completed" className="text-secondary">Completed</option>
-                    </select>
-                    
-                </div>
-                <button type="submit" className="btn btn-success mt-3" disabled={loading}>
-                    {loading ? "Creating..." : "Create Tournament"}
-                </button>
-            </form>
+          {/* Status */}
+          <TextField
+            label="Status"
+            name="status"
+            select
+            variant="outlined"
+            fullWidth
+            value={formData.status}
+            onChange={handleChange}
+            required
+          >
+            <MenuItem value="Upcoming">Upcoming</MenuItem>
+            <MenuItem value="Ongoing">Ongoing</MenuItem>
+            <MenuItem value="Completed">Completed</MenuItem>
+          </TextField>
 
-            <button className="btn btn-secondary mt-2" onClick={() => navigate('/main')}>
-                Back to Main
-            </button>
-        </div>
-    );
-};
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : "Create Tournament"}
+          </Button>
+        </Box>
 
-// Function to color-code tournament status
-const getStatusColor = (status) => {
-    switch (status) {
-        case "Upcoming": return "primary";
-        case "Ongoing": return "success";
-        case "Completed": return "secondary";
-        default: return "dark";
-    }
+        {/* Back Button */}
+        <Button
+          variant="outlined"
+          color="secondary"
+          fullWidth
+          sx={{ marginTop: 2 }}
+          onClick={() => navigate("/main")}
+        >
+          Back to Main
+        </Button>
+      </Paper>
+    </Box>
+  );
 };
 
 export default CreateTournament;
