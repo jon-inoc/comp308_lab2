@@ -46,7 +46,28 @@ Create a gaming tournaments and players system using the MERN stack with Express
 
 ## How to Run the Project
 
-### Backend (Express GraphQL API)
+### Backend
 1. Navigate to the backend directory:
    ```bash
    cd graphql-server
+
+2. Install dependencies:
+   ```bash
+   npm install
+
+3. Start the development server:
+   ```bash
+   npm run dev
+
+### Frontend
+1. Navigate to the backend directory:
+   ```bash
+   cd graphql-react-client
+
+2. Install dependencies:
+   ```bash
+   npm install
+
+3. Start the development server:
+   ```bash
+   npm run dev
